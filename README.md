@@ -2,24 +2,17 @@
 
 ## Project Overview
 
-This project aims to develop a machine learning model capable of predicting machine failures based on operational conditions and sensor data.
-The project is being developed as a practical application of Machine Learning in mechanical engineering, more specific to **Predictive Maintenance**, combining data analysis, feature engineering, classification models and techniques for handling imbalanced datasets.
-The project is currently under development.
+This project applies Machine Learning to Predictive Maintenance, using operational and sensor data to estimate the probability of machine failure and classify machines according to their level of failure risk.
+
+The project combines data analysis, feature engineering, classification models, and techniques for handling imbalanced datasets, with a focus on applying Machine Learning concepts to a mechanical engineering context.
 
 ---
 
 ## Project Objective
 
-The main objective is to predict if a machine will fail based on its operational conditions.
-The project is structured into two main stages:
+The objective is to estimate the probability of machine failure based on its operational conditions and classify each observation into different levels of failure risk.
 
-1. **Failure Prediction:**
-    Predict whether a machine will experience a failure and estimate the probability of failure. Based on the estimated probability, categorize the machine's risk level as Low, Medium or High. The objective of this stage is to achieve a good balance between failure detection and avoiding unnecessary maintenance alerts.
-
-2. **Failure Mode Prediction:**
-    Identify the type of failure when a failure is predicted.
-
-> **Current status:** Stage 1 is under development. Stage 2 has not started yet.
+The risk categorization is intended to provide a practical, data-driven tool to support maintenance prioritization, helping identify equipment that may require greater attention while reducing unnecessary maintenance alerts.
 
 ---
 
@@ -27,127 +20,107 @@ The project is structured into two main stages:
 
 The project uses the AI4I 2020 Predictive Maintenance Dataset, a synthetic dataset designed for predictive maintenance applications and originally made available through the UCI Machine Learning Repository.
 
-The dataset contains operational and sensor measurements related to industrial machines, including: Air and process temperature, Rotational speed, Torque, Tool wear, Machine type and Machine failure
+The dataset contains operational and sensor measurements related to industrial machines, including:
 
-The target variable is:
-* "Machine failure" — indicates whether a machine failure occurred.
+* Machine type
+* Air temperature
+* Process temperature
+* Rotational speed
+* Torque
+* Tool wear
+* Machine failure
 
-The dataset presents a significant class imbalance, with failures representing only a small proportion of the observations (around 3,5%). Therefore, class imbalance is an important consideration throughout the modeling process.
+The target variable is Machine failure, which indicates whether a machine failure occurred.
 
-**Source**: https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset
+The dataset is highly imbalanced, with machine failures representing approximately 3.4% of the observations.
+
+**Source:** [UCI Machine Learning Repository — AI4I 2020 Predictive Maintenance Dataset](https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset)
 
 ---
 
 ## Exploratory Data Analysis
 
-Exploratory Data Analysis was conducted to understand the dataset, identify relationships between variables, investigate the distribution of machine failures, and identify potential patterns associated with failures.
+Exploratory Data Analysis was conducted to understand the dataset, investigate relationships between variables, and identify patterns associated with machine failures.
 
-Some relevant observations include:
-* Strong negative correlation between rotational speed and torque. (Expected by relation between torque and angular speed, considering a constant power - demonstrated ahead)
-* Power was investigated as an additional feature derived from torque and rotational speed.
-* Extreme values of rotational speed and torque were investigated because they have shown a pattern related to failures.
+Some relevant findings included:
 
-
-**Status:** Completed
+* Strong negative correlation between rotational speed and torque.
+* Strong correlation between air temperature and process temperature.
+* Investigation of extreme values of rotational speed and torque in relation to machine failures.
 
 ---
 
 ## Feature Engineering
 
-A new "Power [W]" feature was created based on torque and rotational speed:
+A new **Power [W]** feature was created from torque and rotational speed:
 
 `Power = Torque × Angular Speed`
 
 where angular speed is derived from rotational speed in RPM.
 
-The analysis indicated that extreme power values were associated with a relevant proportion of machine failures. Therefore, the feature was retained for the modeling stage.
-
-**Status:** Completed
+The engineered feature was incorporated into the modeling dataset together with the original operational variables.
 
 ---
 
 ## Machine Learning Models
 
-Several classification approaches are being investigated to determine which model provides the most appropriate balance between detecting failures and avoiding unnecessary failure alerts.
+Two classification algorithms were evaluated:
 
 ### Random Forest
 
-A Random Forest classifier was initially developed as a baseline model.
+Random Forest was evaluated using different approaches for class imbalance, hyperparameter optimization, and classification threshold selection.
 
-The baseline model achieved:
+The final Random Forest model was selected based on its balance between failure detection and false failure predictions.
 
-* **Precision:** 96%
-* **Recall:** 74%
-* **F1-score:** 83%
+Using a decision threshold of 0.34, the model achieved the following results for the failure class on the test dataset:
 
-The impact of "class_weight='balanced" and hyperparameter optimization using GridSearchCV was also investigated.
-
-Threshold optimization was subsequently explored to improve the balance between Precision and Recall.
-
-An initial analysis of the probabilities related to thresholds in the test set indicated a promising result around a threshold of 0.33:
-
-* **Precision:** 80%
-* **Recall:** 81%
-* **F1-score:** 80%
-
-However, this threshold was identified using the test set and therefore will not be considered the definitive result. A further threshold analysis using out-of-fold validation on the training dataset is still required.
-
-**Status:** Under evaluation
-
----
+* **Precision:** 79%
+* **Recall:** 79%
+* **F1-score:** 79%
 
 ### XGBoost
 
-An XGBoost classifier was also evaluated.
+XGBoost was also evaluated using different approaches for handling class imbalance and optimizing classification performance.
 
-Different approaches for handling class imbalance and optimizing the model were investigated, including:
-
-* Baseline XGBoost
-* "scale_pos_weight"
-* GridSearchCV
-* Classification threshold optimization
-
-The best XGBoost configuration evaluated so far, in terms of balance between Precision and Recall, was XGBoost combined with "scale_pos_weight".
-
-Results:
+The best configuration evaluated achieved:
 
 * **Precision:** 79%
 * **Recall:** 78%
 * **F1-score:** 79%
 
-**Status:** Completed
+After comparing the evaluated approaches, Random Forest was selected as the final model based on the overall balance observed during the project.
+
+Detailed experiments and intermediate results are preserved in the `model/random_forest` and `model/xgboost` branches.
 
 ---
-
-## Class Imbalance
-
-Class imbalance is a major characteristic of this dataset because machine failures represent only a small fraction of all observations.
-
-Different strategies were investigated during the modeling process, including:
-
-* "class_weight" for Random Forest
-* "scale_pos_weight" for XGBoost
-* Threshold optimization
-* Hyperparameter optimization
-* Oversampling and SMOTE for Random Forest
-
-The impact of these approaches is being evaluated primarily through Precision, Recall, and F1-score - rather than Accuracy - precisely because of the imbalance in the target variable.
-
----
-
 ## Model Evaluation
 
-Because the target variable is highly imbalanced, Accuracy is not considered sufficient to evaluate model performance.
+Due to the significant class imbalance, Accuracy was not used as the primary metric for model selection.
 
-The main evaluation metrics used in this project are:
+The main evaluation metrics were:
 
-* **Precision** — measures how many predicted failures were actual failures.
-* **Recall** — measures how many actual failures were correctly detected.
-* **F1-score** — provides a balance between Precision and Recall.
+* **Precision** — proportion of predicted failures that were actual failures.
+* **Recall** — proportion of actual failures correctly identified.
+* **F1-score** — harmonic mean of Precision and Recall.
 
-The project places particular importance on the trade-off between **Recall and Precision**, since a predictive maintenance system should detect failures while avoiding an excessive number of false alarms.
+The project focuses on the trade-off between Precision and Recall, as a predictive maintenance application needs to detect failures while avoiding an excessive number of unnecessary alerts.
 
-**Status:** Ongoing
+---
+## Risk Categorization
+
+The predicted failure probabilities generated by the final Random Forest model were analyzed against the actual failures in the test dataset to establish empirical risk ranges.
+
+| Risk Level | Predicted Probability | Machines | Failures | Failure Rate |
+| ---------- | --------------------: | -------: | -------: | -----------: |
+| Low        |                  0–5% |    1,806 |        7 |        0.39% |
+| Moderate   |                >5–40% |      135 |        8 |        5.93% |
+| High       |              >40–100% |       59 |       53 |       89.83% |
+
+The High Risk category contained 53 of the 68 failures observed in the test dataset, representing 77.9% of all failures, while accounting for only 59 of the 2,000 observations.
+
+These results indicate that the probability estimates can be transformed into risk levels that provide a more practical interpretation of the model's predictions.
+
+> The risk thresholds were defined empirically based on the behavior observed in this dataset and should not be considered universal thresholds for other machines or industrial processes.
 
 ---
 
@@ -167,20 +140,24 @@ The project places particular importance on the trade-off between **Recall and P
 
 ## Project Structure
 
-The project is being developed using Jupyter Notebook for the analysis and modeling workflow, with Git and GitHub used to maintain the development history and experiment versions.
+The main analysis and modeling workflow is contained in the Jupyter Notebook:
 
-The repository structure and documentation will be refined as the project progresses.
+`Predictive_maintenance.ipynb`
+
+The repository also contains development branches documenting the modeling experiments:
+
+* `model/random_forest`
+* `model/xgboost`
+
+The `main` branch contains the final version of the project.
 
 ---
 
-## Next Steps
+## Conclusion
 
-The next planned steps are:
+The project demonstrates how Machine Learning can be applied to operational machine data to estimate failure probability and transform model predictions into practical risk levels.
 
-1. Perform out-of-fold validation for Random Forest threshold selection.
-2. Evaluate the selected threshold once on the test dataset.
-3. Compare the best Random Forest and XGBoost results.
-4. Select the most appropriate model for the project.
-5. Complete the conclusions for Stage 1.
-6. Begin Stage 2 — failure mode prediction.
-7. Finalize the project documentation.
+The final Random Forest model achieved 79% Precision, 79% Recall, and 79% F1-score for the failure class on the test dataset. The subsequent risk categorization showed a strong separation between the defined risk levels, particularly for the High Risk category.
+
+The resulting approach can serve as a data-driven support tool for maintenance prioritization, while further validation with real-world operational data would be necessary before deployment in a production environment.
+
